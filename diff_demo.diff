@@ -1,0 +1,952 @@
+diff --git a/config/application.config.php b/config/application.config.php
+index 6c57a0c..664b8e6 100755
+--- a/config/application.config.php
++++ b/config/application.config.php
+@@ -10,9 +10,9 @@ return array(
+     'modules' => array(
+         'Application',
+         'Blog',
+-       'DoctrineModule',
+-       'DoctrineORMModule',
+-       'ZendDeveloperTools'
++        'DoctrineModule',
++        'DoctrineORMModule',
++        'ZendDeveloperTools'
+     ),
+ 
+     // These are various options for the listeners attached to the ModuleManager
+@@ -68,7 +68,7 @@ return array(
+     //     ),
+     // ),
+ 
+-   // Initial configuration with which to seed the ServiceManager.
+-   // Should be compatible with Zend\ServiceManager\Config.
+-   // 'service_manager' => array(),
++    // Initial configuration with which to seed the ServiceManager.
++    // Should be compatible with Zend\ServiceManager\Config.
++    // 'service_manager' => array(),
+ );
+diff --git a/module/Blog/Module.php b/module/Blog/Module.php
+index 81196c7..dc181d9 100644
+--- a/module/Blog/Module.php
++++ b/module/Blog/Module.php
+@@ -14,6 +14,9 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface
+         return include __DIR__ . '/config/module.config.php';
+     }
+ 
++    /**
++     * @return array
++     */
+     public function getAutoloaderConfig()
+     {
+         return array(
+diff --git a/module/Blog/config/module.config.php b/module/Blog/config/module.config.php
+index 8d8a352..2bf8fc1 100644
+--- a/module/Blog/config/module.config.php
++++ b/module/Blog/config/module.config.php
+@@ -3,40 +3,38 @@
+ return array(
+     'controllers' => array(
+         'factories' => array(
+-            'Blog\Controller\Blog' => 'Blog\Factories\ControllerFactory',   
++            'Blog\Controller\Blog' => 'Blog\Factories\ControllerFactory',
+         ),
+     ),
+ 
+-
+     'router' => array(
+         'routes' => array(
+             'blog' => array(
+-                'type'    => 'segment',
++                'type'    => 'literal',
+                 'options' => array(
+-                    'route'    => '/blog[/:action][/:id]',
+-                    'constraints' => array(
+-                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+-                        'id'     => '[0-9]+',
+-                    ),
++                    'route'    => '/blog',
+                     'defaults' => array(
+                         'controller' => 'Blog\Controller\Blog',
+                         'action'     => 'index',
+                     ),
+-                ),  
+-            ),
+-            'new'=>array(
+-                'type'    => 'segment',
+-                'options' => array(
+-                    'route'    => '/new[/:action][/:id]',
+-                    'constraints' => array(
+-                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+-                        'id'     => '[0-9]+',
+-                    ),
+-                    'defaults' => array(
+-                        'controller' => 'Blog\Controller\New',
+-                        'action'     => 'index1',
+-                    ),
+                 ),
++
++                'may_terminate' => true,
++                'child_routes' => array(
++                    'default' => array(
++                        'type' => 'segment',
++                        'options' => array(
++                            'route' => '[/:action][/:id]',
++                            'constraints' => array(
++                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*'
++                            ),
++                            'defaults' => array(
++                                'controller' => 'Blog\Controller\Blog',
++                                'action' => 'index',
++                            )
++                        )
++                    )
++                )
+             ),
+         ),
+     ),
+@@ -44,12 +42,8 @@ return array(
+     'service_manager' => [
+         'factories' => array(
+             'Blog\Services\BlogService' => 'Blog\Factories\BlogServiceFactory',
+-            'Blog\Repositories\BlogRepository'=>'Blog\Factories\EntityManagerFactory'
++            'Blog\Repositories\BlogRepository' => 'Blog\Factories\BlogRepositoryFactory'
+         ),
+-
+-        'invokables'=>[
+-            'Blog\Services\NewService'=>'Blog\Services\NewService',
+-        ],
+     ],
+ 
+     'view_manager' => array(
+diff --git a/module/Blog/src/Blog/Controller/BlogController.php b/module/Blog/src/Blog/Controller/BlogController.php
+index 6ec7594..dfdb1a6 100644
+--- a/module/Blog/src/Blog/Controller/BlogController.php
++++ b/module/Blog/src/Blog/Controller/BlogController.php
+@@ -1,4 +1,5 @@
+ <?php
++declare (strict_types = 1);
+ 
+ namespace Blog\Controller;
+ 
+@@ -8,18 +9,26 @@ use Blog\Form\BlogForm;
+ use Blog\Entity\Blog;
+ use Blog\Contracts\BlogServiceInterface;
+ 
++/**
++ * Class BlogController
++ * @package Blog\Controller
++ */
+ class BlogController extends AbstractActionController
+ {
+-
+-    protected $em;
+     protected $blogService;
+ 
++    /**
++     * BlogController constructor.
++     * @param BlogServiceInterface $blogService
++     */
+     public function __construct(BlogServiceInterface $blogService)
+     {
+         $this->blogService = $blogService;
+     }
+ 
+-
++    /**
++     * @return ViewModel
++     */
+     public function indexAction()
+     {
+         $blogs = $this->blogService->findAllBlogs();
+@@ -29,9 +38,11 @@ class BlogController extends AbstractActionController
+         ]);
+     }
+ 
++    /**
++     * @return array|\Zend\Http\Response
++     */
+     public function  addAction()
+     {
+-
+         $form = new BlogForm();
+ 
+         $form->get('submit')->setValue('Create');
+@@ -48,19 +59,21 @@ class BlogController extends AbstractActionController
+             if ($form->isValid()) {
+                 $blog->exchangeArray($form->getData());
+                 $this->blogService->add($blog);
++
+                 return $this->redirect()->toRoute('blog');
+             }
+         }
+ 
+         return [
+-
+             'form' => $form
+         ];
+     }
+ 
++    /**
++     * @return array|\Zend\Http\Response
++     */
+     public function editAction()
+     {
+-
+         $id = (int)$this->params()->fromRoute('id', 0);
+         if (!$id) {
+             return $this->redirect()->toRoute('blog', array(
+@@ -74,7 +87,6 @@ class BlogController extends AbstractActionController
+         $form->bind($blog);
+         $form->get('submit')->setAttribute('value', 'Edit');
+ 
+-
+         $request = $this->getRequest();
+         if ($request->isPost()) {
+             $form->setInputFilter($blog->getInputFilter());
+@@ -82,27 +94,45 @@ class BlogController extends AbstractActionController
+ 
+             if ($form->isValid()) {
+                 $this->blogService->edit();
++
+                 return $this->redirect()->toRoute('blog');
+             }
+         }
+ 
+-        return array(
++        return [
+             'id' => $id,
+             'form' => $form,
+-        );
++        ];
+     }
+ 
++    /**
++     * @return array|\Zend\Http\Response
++     */
+     public function deleteAction()
+     {
+-        $id = $this->params()->fromRoute('id', 0);
++        $id = (int)$this->params()->fromRoute('id', 0);
++
++        if (!$id) {
++            
++            return $this->redirect()->toRoute('blog');
++        }
+ 
+         $blog = $this->blogService->findById($id);
+ 
+-        if ($blog) {
++        $request = $this->getRequest();
+ 
+-            $this->blogService->delete($blog);
++        if ($request->isPost()) {
++            $del = $request->getPost('del');
++            if ($del == 'Yes') {
++                $this->blogService->delete($blog);
++            }
+ 
+             return $this->redirect()->toRoute('blog');
+         }
++
++        return array(
++            'id'    => $id,
++            'blog' => $blog
++        );
+     }
+ }
+diff --git a/module/Blog/src/Blog/Controller/NewController.php b/module/Blog/src/Blog/Controller/NewController.php
+deleted file mode 100644
+index 8d73756..0000000
+--- a/module/Blog/src/Blog/Controller/NewController.php
++++ /dev/null
+@@ -1,18 +0,0 @@
+-<?php
+-
+-
+-namespace Blog\Controller;
+-
+-use Zend\Mvc\Controller\AbstractActionController;
+-use Zend\View\Helper\ViewModel;
+-
+-class NewController extends AbstractActionController{
+-
+-
+-    public function index1Action()
+-    {
+-       $blogs='Hello'; 
+-      return new ViewModel(['blogs'=>$blogs]);
+-    }
+-
+-}
+\ No newline at end of file
+diff --git a/module/Blog/src/Blog/Entity/Blog.php b/module/Blog/src/Blog/Entity/Blog.php
+index ad0c910..9474b5f 100644
+--- a/module/Blog/src/Blog/Entity/Blog.php
++++ b/module/Blog/src/Blog/Entity/Blog.php
+@@ -1,4 +1,5 @@
+ <?php
++declare(Strict_types=1);
+ 
+ namespace Blog\Entity;
+ 
+@@ -7,11 +8,9 @@ use Zend\InputFilter\InputFilter;
+ use Zend\InputFilter\InputFilterAwareInterface;
+ use Zend\InputFilter\InputFilterInterface;
+ 
+-
+ /** @ORM\Entity */
+ class Blog implements InputFilterAwareInterface
+ {
+-
+     /**
+      * @ORM\Id
+      * @ORM\GeneratedValue(strategy="AUTO")
+@@ -25,48 +24,64 @@ class Blog implements InputFilterAwareInterface
+     /** @ORM\Column(type="text") */
+     protected $description;
+ 
++    /**
++     * @var
++     */
+     protected $inputFilter;
+ 
+-
+-    public function getId()
++    /**
++     * @return mixed
++     */
++    public function getId():int
+     {
+         return $this->id;
+     }
+ 
+-    public function setTitle($title)
++    /**
++     * @param String $title
++     */
++    public function setTitle(string $title)
+     {
+         $this->title = $title;
+     }
+ 
+     /**
+-     * @return mixed
++     * @return String
+      */
+-    public function getTitle()
++    public function getTitle():string
+     {
+         return $this->title;
+     }
+ 
+     /**
+-     * @return mixed
++     * @return String
+      */
+-    public function getDescription()
++    public function getDescription():string
+     {
+         return $this->description;
+     }
+ 
+     /**
+-     * @param mixed $description
++     * @param $description
++     * @return String
+      */
+-    public function setDescription($description)
++    public function setDescription(string $description)
+     {
+         $this->description = $description;
+     }
+ 
++    /**
++     * @return array
++     */
+     public function getArrayCopy() 
+     {
+         return get_object_vars($this);
+     }
+ 
++    /**
++     * @param InputFilterInterface $inputFilter
++     * @return void|InputFilterAwareInterface
++     */
+     public function setInputFilter(InputFilterInterface $inputFilter)
+     {
+         throw new Exception('Not Used');
+@@ -102,10 +117,6 @@ class Blog implements InputFilterAwareInterface
+                             'min' => 1 ,
+                             'max' => 100,
+                         ),
+-                        'messages'=>[
+-                            
+-                            
+-                        ]
+                     ),
+                 ),
+             ));
+@@ -135,6 +146,9 @@ class Blog implements InputFilterAwareInterface
+         return $this->inputFilter;
+     }
+ 
++    /**
++     * @param $data
++     */
+     public function exchangeArray($data)
+     {
+         $this->id = $data['id'] ;
+diff --git a/module/Blog/src/Contracts/BlogServiceInterface.php b/module/Blog/src/Contracts/BlogServiceInterface.php
+index b15ee38..3fccf6e 100644
+--- a/module/Blog/src/Contracts/BlogServiceInterface.php
++++ b/module/Blog/src/Contracts/BlogServiceInterface.php
+@@ -1,17 +1,41 @@
+ <?php
++declare(strict_types=1);
+ 
+ namespace Blog\Contracts;
+ 
++use Blog\Entity\Blog;
++
++/**
++ * Interface BlogServiceInterface
++ * @package Blog\Contracts
++ */
+ interface BlogServiceInterface
+ {
++    /**
++     * @return array
++     */
++    public function findAllBlogs():array ;
+ 
+-    public function findAllBlogs();
+-
+-    public function add($blog);
++    /**
++     * @param Blog $blog
++     * @return mixed
++     */
++    public function add(Blog $blog);
+ 
++    /**
++     * @return mixed
++     */
+     public function edit();
+ 
+-    public function delete($blog);
++    /**
++     * @param Blog $blog
++     * @return mixed
++     */
++    public function delete(Blog $blog);
+ 
+-    public function findById($id);
++    /**
++     * @param $id
++     * @return Blog
++     */
++    public function findById(int $id):Blog;
+ }
+diff --git a/module/Blog/src/Factories/BlogServiceFactory.php b/module/Blog/src/Factories/BlogServiceFactory.php
+index 89ac9f8..9458367 100644
+--- a/module/Blog/src/Factories/BlogServiceFactory.php
++++ b/module/Blog/src/Factories/BlogServiceFactory.php
+@@ -5,13 +5,21 @@ namespace Blog\Factories;
+ use Zend\ServiceManager\FactoryInterface;
+ use Zend\ServiceManager\ServiceLocatorInterface;
+ use Blog\Services\BlogService;
+-use Blog\Repositories\BlogRepository;
+ 
++/**
++ * Class BlogServiceFactory
++ * @package Blog\Factories
++ */
+ class BlogServiceFactory implements FactoryInterface
+ {
++    /**
++     * @param ServiceLocatorInterface $serviceLocator
++     * @return BlogService|mixed
++     */
+     public function createService(ServiceLocatorInterface $serviceLocator)
+     {
+-       $blogRepo=$serviceLocator->get('Blog\Repositories\BlogRepository');
+-       return new BlogService($blogRepo);
++        $blogRepository = $serviceLocator->get('Blog\Repositories\BlogRepository');
++
++        return new BlogService($blogRepository);
+     }
+-}   
+\ No newline at end of file
++}
+diff --git a/module/Blog/src/Factories/ControllerFactory.php b/module/Blog/src/Factories/ControllerFactory.php
+index ac655a6..e9c26d0 100644
+--- a/module/Blog/src/Factories/ControllerFactory.php
++++ b/module/Blog/src/Factories/ControllerFactory.php
+@@ -1,20 +1,25 @@
+ <?php
+ 
+-
+ namespace Blog\Factories;
+ 
+-
+ use Blog\Controller\BlogController;
+ use Zend\ServiceManager\FactoryInterface;
+ use Zend\ServiceManager\ServiceLocatorInterface;
+ 
+-
++/**
++ * Class ControllerFactory
++ * @package Blog\Factories
++ */
+ class ControllerFactory implements FactoryInterface
+ {
++    /**
++     * @param ServiceLocatorInterface $serviceLocator
++     * @return BlogController|mixed
++     */
+     public function createService(ServiceLocatorInterface $serviceLocator)
+     {
+-        $serviceLocator=$serviceLocator->getServiceLocator();
+-        $blogService=$serviceLocator->get('Blog\Services\NewService');
++        $serviceLocator = $serviceLocator->getServiceLocator();
++        $blogService = $serviceLocator->get('Blog\Services\BlogService');
+         return new BlogController($blogService);
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/module/Blog/src/Factories/EntityManagerFactory.php b/module/Blog/src/Factories/EntityManagerFactory.php
+deleted file mode 100644
+index 07b4f45..0000000
+--- a/module/Blog/src/Factories/EntityManagerFactory.php
++++ /dev/null
+@@ -1,16 +0,0 @@
+-<?php
+-
+-namespace Blog\Factories;
+-
+-use Zend\ServiceManager\FactoryInterface;
+-use Zend\ServiceManager\ServiceLocatorInterface;
+-use Blog\Repositories\BlogRepository;
+-
+-class EntityManagerFactory implements FactoryInterface
+-{
+-    public function createService(ServiceLocatorInterface $serviceLocator)
+-    {
+-       $em=$serviceLocator->get('doctrine.entitymanager.orm_default');
+-       return new BlogRepository($em);
+-    }
+-}
+\ No newline at end of file
+diff --git a/module/Blog/src/Form/BlogForm.php b/module/Blog/src/Form/BlogForm.php
+index 126dd18..3c0b597 100644
+--- a/module/Blog/src/Form/BlogForm.php
++++ b/module/Blog/src/Form/BlogForm.php
+@@ -1,10 +1,14 @@
+ <?php
+-
++declare(Strict_types=1);
+ 
+ namespace Blog\Form;
+ 
+ use Zend\Form\Form;
+ 
++/**
++ * Class BlogForm
++ * @package Blog\Form
++ */
+ class BlogForm extends Form
+ {
+     /**
+@@ -21,20 +25,17 @@ class BlogForm extends Form
+         ]);
+ 
+         $this->add([
+-
+             'name'=>'title',
+             'type'=>'Text',
+         ]);
+ 
+          $this->add([
+-
+              'name'=>'description',
+              'type'=>'Zend\Form\Element\Textarea',
+              'attributes'=>[
+                  'rows'=> 10,
+                  'cols'=>100
+              ]
+-
+         ]);
+ 
+         $this->add([
+@@ -45,12 +46,5 @@ class BlogForm extends Form
+                 'id' => 'submitbutton',
+             ]
+         ]);
+-
+-
+     }
+-
+-
+-
+-
+-
+ }
+\ No newline at end of file
+diff --git a/module/Blog/src/Repositories/BlogRepository.php b/module/Blog/src/Repositories/BlogRepository.php
+index 6a56a28..9417ad9 100644
+--- a/module/Blog/src/Repositories/BlogRepository.php
++++ b/module/Blog/src/Repositories/BlogRepository.php
+@@ -1,44 +1,76 @@
+ <?php
++declare(strict_types=1);
+ 
+ namespace Blog\Repositories;
+ 
++use Blog\Entity\Blog;
+ use Doctrine\ORM\EntityManager;
+ 
++/**
++ * Class BlogRepository
++ * @package Blog\Repositories
++ */
+ class BlogRepository
+ {
+-
+     protected $em;
+ 
++    /**
++     * BlogRepository constructor.
++     * @param EntityManager $em
++     */
+     public function __construct(EntityManager $em)
+     {
+         $this->em = $em;
+     }
+ 
+-    public function findAllBlogs()
++    /**
++     * @return array
++     */
++    public function findAllBlogs():array
+     {
+         $blogs = $this->em->getRepository('Blog\Entity\Blog')->findAll();
++
+         return $blogs;
+     }
+ 
+-    public function add($blog)
++    /**
++     * @param Blog $blog
++     * @throws \Doctrine\ORM\OptimisticLockException
++     */
++    public function add(Blog $blog)
+     {
+         $this->em->persist($blog);
++
+         $this->em->flush();
+     }
+ 
++    /**
++     * @throws \Doctrine\ORM\OptimisticLockException
++     */
+     public function edit()
+     {
+         $this->em->flush();
+     }
+ 
+-    public function findById($id)
++    /**
++     * @param int $id
++     * @return object|null
++     * @throws \Doctrine\ORM\ORMException
++     * @throws \Doctrine\ORM\OptimisticLockException
++     * @throws \Doctrine\ORM\TransactionRequiredException
++     */
++    public function findById(int $id):Blog
+     {
++        $blog = $this->em->find('Blog\Entity\Blog', $id);
+ 
+-        $blogs = $this->em->find('Blog\Entity\Blog', $id);
+-        return $blogs;
++        return $blog;
+     }
+ 
+-    public function delete($blog)
++    /**
++     * @param Blog $blog
++     * @throws \Doctrine\ORM\OptimisticLockException
++     */
++    public function delete(Blog $blog)
+     {
+         $this->em->remove($blog);
+         $this->em->flush();
+diff --git a/module/Blog/src/Services/BlogService.php b/module/Blog/src/Services/BlogService.php
+index 3405099..8c139e2 100644
+--- a/module/Blog/src/Services/BlogService.php
++++ b/module/Blog/src/Services/BlogService.php
+@@ -1,45 +1,74 @@
+ <?php
++declare(strict_types=1);
+ 
+ namespace Blog\Services;
+ 
+ use Blog\Repositories\BlogRepository;
+ use Blog\Contracts\BlogServiceInterface;
++use Blog\Entity\Blog;
+ 
++/**
++ * Class BlogService
++ * @package Blog\Services
++ */
+ class BlogService implements BlogServiceInterface
+ {
+    protected $blogRepository;
+ 
++    /**
++     * BlogService constructor.
++     * @param BlogRepository $blogRepository
++     */
+    public function __construct(BlogRepository $blogRepository)
+    {
+       $this->blogRepository = $blogRepository;
+    }
+ 
+-   public function findAllBlogs()
++    /**
++     * @return array
++     */
++   public function findAllBlogs():array
+    {
+       return $this->blogRepository->findAllBlogs();
+    }
+ 
+-   public function add($blog)
++    /**
++     * @param Blog $blog
++     * @return mixed|void
++     * @throws \Doctrine\ORM\OptimisticLockException
++     */
++   public function add(Blog $blog)
+    {
+       return $this->blogRepository->add($blog);
+    }
+ 
++
+    public function edit()
+    {
+       $this->blogRepository->edit();
+    }
+ 
+-   public function delete($blog)
++    /**
++     * @param Blog $blog
++     * @return mixed|void
++     * @throws \Doctrine\ORM\OptimisticLockException
++     */
++   public function delete(Blog $blog)
+    {
+       $this->blogRepository->delete($blog);
+    }
+ 
+-   public function findById($id)
++    /**
++     * @param int $id
++     * @return Blog
++     * @throws \Doctrine\ORM\ORMException
++     * @throws \Doctrine\ORM\OptimisticLockException
++     * @throws \Doctrine\ORM\TransactionRequiredException
++     */
++   public function findById(int $id):Blog
+    {
+-      $blogs = $this->blogRepository->findById($id);
+-      return $blogs;
+-   }
+-
+-
++      $blog = $this->blogRepository->findById($id);
+ 
++      return $blog;
++   }
+ }
+diff --git a/module/Blog/src/Services/NewService.php b/module/Blog/src/Services/NewService.php
+deleted file mode 100644
+index 0d5e808..0000000
+--- a/module/Blog/src/Services/NewService.php
++++ /dev/null
+@@ -1,30 +0,0 @@
+-<?php
+-
+-namespace Blog\Services;
+-
+-use Blog\Contracts\BlogServiceInterface;
+-
+-class NewService implements BlogServiceInterface {
+-
+-    public function findAllBlogs(){
+-             die('hello');
+-    }
+-
+-    public function add($blog){
+-
+-    }
+-
+-    public function edit()
+-    {
+-
+-    }
+-
+-    public function delete($blog){
+-
+-    }
+-
+-    public function findById($id)
+-    {
+-
+-    }
+-}
+\ No newline at end of file
+diff --git a/module/Blog/view/blog/blog/add.phtml b/module/Blog/view/blog/blog/add.phtml
+index f73a07d..9dcfc92 100644
+--- a/module/Blog/view/blog/blog/add.phtml
++++ b/module/Blog/view/blog/blog/add.phtml
+@@ -4,7 +4,7 @@ $this->headTitle($title);
+ ?>
+ 
+ <?php
+-$form->setAttribute('action', $this->url('blog', array('action' => 'add')));
++$form->setAttribute('action', $this->url('blog/default', array('action' => 'add')));
+ $form->prepare();
+ ?>
+ 
+@@ -15,11 +15,11 @@ echo $this->formHidden($form->get('id'));
+ 
+ <?php echo $this->formHidden($form->get('id')); ?>
+ 
+-<h5>Title : </h5><?php echo $this->formRow($form->get('title')); ?>
++    <h5>Title : </h5><?php echo $this->formRow($form->get('title')); ?>
+ 
+-<h5>Description : </h5><?php echo $this->formRow($form->get('description')); ?>
+-<br>
+-<br>
++    <h5>Description : </h5><?php echo $this->formRow($form->get('description')); ?>
++    <br>
++    <br>
+ <?php echo $this->formSubmit($form->get('submit')); ?>
+ 
+ <?php echo $this->form()->closeTag(); ?>
+\ No newline at end of file
+diff --git a/module/Blog/view/blog/blog/edit.phtml b/module/Blog/view/blog/blog/edit.phtml
+index 6873420..cb3d466 100644
+--- a/module/Blog/view/blog/blog/edit.phtml
++++ b/module/Blog/view/blog/blog/edit.phtml
+@@ -2,32 +2,22 @@
+ $title = 'Edit Your Blog';
+ $this->headTitle($title);
+ ?>
+-<h1><?php echo $this->escapeHtml($title); ?></h1>
++    <h1><?php echo $this->escapeHtml($title); ?></h1>
+ <?php
+ 
+ $form = $this->form;
+-$form->setAttribute('action', $this->url(
+-    'blog',
+-    array(
+-        'action' => 'edit',
+-        'id'     => $this->id,
+-    )
+-
+-));
++$form->setAttribute('action', $this->url('blog/default', array('action' => 'edit', 'id' => $this->id,)));
+ $form->prepare();
+ 
+ echo $this->form()->openTag($form);
+ 
+ ?>
+-
+ <?php echo $this->formHidden($form->get('id')); ?>
+-
+-<h5>Title : </h5><?php echo $this->formRow($form->get('title')); ?>
+-
+-<h5>Description : </h5><?php echo $this->formRow($form->get('description')); ?>
+-<br>
+-<br>
+-<?php echo $this->formSubmit($form->get('submit')); ?>
+-
+-
+-<?php echo $this->form()->closeTag(); ?>    
+\ No newline at end of file
++    <h5>Title : </h5><?php echo $this->formRow($form->get('title')); ?>
++    <h5>Description : </h5><?php echo $this->formRow($form->get('description')); ?>
++    <br>
++    <br>
++<?php
++echo $this->formSubmit($form->get('submit'));
++echo $this->form()->closeTag();
++?>
+\ No newline at end of file
+diff --git a/module/Blog/view/blog/blog/index.phtml b/module/Blog/view/blog/blog/index.phtml
+index a542939..620814f 100644
+--- a/module/Blog/view/blog/blog/index.phtml
++++ b/module/Blog/view/blog/blog/index.phtml
+@@ -5,26 +5,19 @@ $this->headTitle($title);
+ ?>
+ <h1><?php echo $this->escapeHtml($title); ?></h1>
+ <p>
+-    <a href="<?php echo $this->url('blog', array('action' => 'add')); ?>">Create A New Blog</a>
++    <a href="<?php echo $this->url('blog/default', array('action' => 'add')); ?>">Create A New Blog</a>
+ </p>
+-
+-
+-
+ <?php foreach ($blogs as $blog) : ?>
+ 
+-    <h5 class="card-header"><?php echo $this->escapeHtml($blog->getTitle()); ?></h5>
+-
+-    <div class="card">
++<h5 class="card-header"><?php echo $this->escapeHtml($blog->getTitle()); ?></h5>
++<div class="card">
+         <?php echo $this->escapeHtml($blog->getDescription()); ?>
+-    </div>
+-
+-    <br>
+-
+-    <a href="<?php echo $this->url('blog', array('action' => 'edit', 'id' => $blog->getId())); ?>">Edit</a>
+-    &nbsp;
+-    <a href="<?php echo $this->url('blog', array('action' => 'delete', 'id' => $blog->getId())); ?>">Delete</a>
+-
+-    <br>
+-    <br>
++</div>
++<br>
++<a href="<?php echo $this->url('blog/default', array('action' => 'edit', 'id' => $blog->getId())); ?>">Edit</a>
++&nbsp;
++<a href="<?php echo $this->url('blog/default', array('action' => 'delete', 'id' => $blog->getId())); ?>">Delete</a>
++<br>
++<br>
+ 
+ <?php endforeach; ?>
+\ No newline at end of file
+diff --git a/module/Blog/view/blog/new/index1.phtml b/module/Blog/view/blog/new/index1.phtml
+deleted file mode 100644
+index 8b13789..0000000
+--- a/module/Blog/view/blog/new/index1.phtml
++++ /dev/null
+@@ -1 +0,0 @@
+-
+diff --git a/public/index.php b/public/index.php
+index 1828853..b1603f9 100755
+--- a/public/index.php
++++ b/public/index.php
+@@ -1,7 +1,8 @@
+ <?php
+ 
+-define('REQUEST_MICROTIME', microtime(true));
+-
++error_reporting(E_ALL);
++error_reporting(E_ALL|E_STRICT);
++ini_set('display_errors', 'on');
+ 
+ /**
+  * This makes our life easier when dealing with paths. Everything is relative

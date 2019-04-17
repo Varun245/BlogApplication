@@ -1,0 +1,15 @@
+<?php
+$title = 'Login';
+$this->headTitle($title);
+
+echo $this->form()->openTag($form);
+$form->prepare();
+?>
+<h5>Email : </h5><?php echo $this->formRow($form->get('email')); ?>
+
+<h5>Description : </h5><?php echo $this->formRow($form->get('password')); ?>
+<br>
+<br>
+<?php echo $this->formSubmit($form->get('submit')); ?>
+
+<?php echo $this->form()->closeTag(); ?>

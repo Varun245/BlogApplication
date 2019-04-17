@@ -1,0 +1,26 @@
+<?php
+$title = 'Create A New Blog';
+$this->headTitle($title);
+?>
+
+<?php
+$form->setAttribute('action', $this->url('blog/default', array('action' => 'add')));
+$form->prepare();
+?>
+
+<?php
+echo $this->form()->openTag($form);
+echo $this->formHidden($form->get('id'));
+?>
+
+<?php echo $this->formHidden($form->get('id')); ?>
+
+    <h5>Title : </h5><?php echo $this->formRow($form->get('title')); ?>
+
+    <h5>Description : </h5><?php echo $this->formRow($form->get('description')); ?>
+    <br>
+    <br>
+<?php echo $this->formSubmit($form->get('submit')); ?>
+
+<?php echo $this->form()->closeTag(); ?>
+
