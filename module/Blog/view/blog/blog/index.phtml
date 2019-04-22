@@ -7,6 +7,7 @@ $this->headTitle($title);
 <p>
     <a href="<?php echo $this->url('blog/default', array('action' => 'add')); ?>">Create A New Blog</a>
 </p>
+
 <?php foreach ($blogs as $blog) : ?>
 
 <h5 class="card-header"><?php echo $this->escapeHtml($blog->getTitle()); ?></h5>

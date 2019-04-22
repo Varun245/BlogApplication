@@ -37,9 +37,9 @@ class BlogService implements BlogServiceInterface
      * @return mixed|void
      * @throws \Doctrine\ORM\OptimisticLockException
      */
-   public function add(Blog $blog)
+   public function add(Blog $blog,int $userId)
    {
-       $this->blogRepository->add($blog);
+       $this->blogRepository->add($blog,$userId);
    }
 
     /**

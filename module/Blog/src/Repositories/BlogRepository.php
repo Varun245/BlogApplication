@@ -29,9 +29,6 @@ class BlogRepository
      */
     public function findAllBlogs(): array
     {
-        $user=$this->em->find(User::class,1);
-        $blogs=$user->getBlogs()->toArray();
-     
         $blogs = $this->em->getRepository(Blog::class)->findAll();
 
         return $blogs;
@@ -41,11 +38,17 @@ class BlogRepository
      * @param Blog $blog
      * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function add(Blog $blog)
+    public function add(Blog $blog,$userId)
     {
+
+        $user=$this->findById($userId);
+
+        $blog->setUser($user);
+
         $this->em->persist($blog);
 
         $this->em->flush();
+        
     }
 
     /**
@@ -80,4 +83,5 @@ class BlogRepository
         $this->em->flush();
     }
 }
+    
 

@@ -4,10 +4,16 @@ $this->headTitle($title);
 
 echo $this->form()->openTag($form);
 $form->prepare();
+if ($this->flashMessenger()->hasMessages()) {
+    $messages = $this->flashMessenger()->getMessages();
+        foreach($messages as $message) {
+            echo $message;
+        }   
+    }
 ?>
 <h5>Email : </h5><?php echo $this->formRow($form->get('email')); ?>
 
-<h5>Description : </h5><?php echo $this->formRow($form->get('password')); ?>
+<h5>Password : </h5><?php echo $this->formRow($form->get('password')); ?>
 <br>
 <br>
 <?php echo $this->formSubmit($form->get('submit')); ?>

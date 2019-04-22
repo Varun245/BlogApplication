@@ -24,7 +24,7 @@ interface BlogServiceInterface
      * @param Blog $blog
      * @return mixed
      */
-    public function add(Blog $blog);
+    public function add(Blog $blog,int $userId);
 
     /**
      * Edit the Blog 

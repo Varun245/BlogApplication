@@ -27,6 +27,13 @@ class Blog implements InputFilterAwareInterface
     protected $description;
 
     /**
+     * 
+     * @ManyToOne(targetEntity="User\Entity\User", inversedBy="blogs")
+     * @JoinColumn(name="user_id", referencedColumnName="id")
+     */
+    protected $user;
+
+    /**
      * @var
      */
     protected $inputFilter;
@@ -88,7 +95,12 @@ class Blog implements InputFilterAwareInterface
     {
         throw new Exception('Not Used');
     }
-    
+
+    public function setUser($id)
+    {
+       $this->user=$id;
+    }
+
     public function getInputFilter()
     {
         $inputFilter = new InputFilter();

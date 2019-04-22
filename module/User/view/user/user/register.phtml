@@ -1,0 +1,36 @@
+<?php
+$title = 'Register';
+$this->headTitle($title);
+?>
+
+<?php
+$form->setAttribute('action', $this->url('user/process', array('action' => 'register')));
+$form->prepare();
+?>
+
+<?php
+echo $this->form()->openTag($form);
+echo $this->formHidden($form->get('id'));
+?>
+<h5>First Name : </h5><?php echo $this->formRow($form->get('firstName')); ?>
+
+<h5>Last Name : </h5><?php echo $this->formRow($form->get('lastName')); ?>
+
+<h5>Email : </h5><?php echo $this->formRow($form->get('email')); ?><?php 
+
+if ($this->flashMessenger()->hasMessages()) {
+$messages = $this->flashMessenger()->getMessages();
+    foreach($messages as $message) {
+        echo $message;
+    }   
+}
+?>
+
+<h5>Password : </h5><?php echo $this->formRow($form->get('password')); ?>
+
+<h5>Confirm Password : </h5><?php echo $this->formRow($form->get('confirmPassword')); ?>
+<br>
+<br>
+<?php echo $this->formSubmit($form->get('submit')); ?>
+
+<?php echo $this->form()->closeTag(); ?>

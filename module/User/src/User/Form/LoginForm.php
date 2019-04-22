@@ -2,16 +2,17 @@
 
 namespace User\Form;
 
-class LoginForm extends form{
+use Zend\Form\Form;
+
+class LoginForm extends Form{
 
     public function __construct($name=null)
     {
         parent::__construct('login');
 
-
         $this->add([
             'name'=>'email',
-            'type'=>'Hidden',
+            'type'=>'Text',
         ]);
 
         $this->add([
@@ -27,8 +28,5 @@ class LoginForm extends form{
                 'id' => 'submitbutton',
             ]
         ]);
-
     }
-
-
 }

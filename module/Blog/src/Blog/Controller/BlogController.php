@@ -7,7 +7,8 @@ use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Blog\Form\BlogForm;
 use Blog\Entity\Blog;
-use Blog\Contracts\BlogServiceInterface;
+use Blog\Contracts\BlogServiceInterface;   
+
 
 /**
  * Class BlogController
@@ -33,10 +34,11 @@ class BlogController extends AbstractActionController
      */
     public function indexAction()
     {
+        
         $blogs = $this->blogService->findAllBlogs();
 
         return new ViewModel([
-            'blogs' => $blogs
+            'blogs' => $blogs,
         ]);
     }
 
@@ -45,6 +47,9 @@ class BlogController extends AbstractActionController
      */
     public function  addAction()
     {
+       
+        $userId=$this->identity()->getId();
+     
         $form = new BlogForm();
 
         $form->get('submit')->setValue('Create');
@@ -60,7 +65,7 @@ class BlogController extends AbstractActionController
 
             if ($form->isValid()) {
                 $blog->exchangeArray($form->getData());
-                $this->blogService->add($blog);
+                $this->blogService->add($blog,$userId);
 
                 return $this->redirect()->toRoute('blog');
             }
@@ -120,7 +125,6 @@ class BlogController extends AbstractActionController
         }
 
         $blog = $this->blogService->findById($id);
-
         $request = $this->getRequest();
 
         if ($request->isPost()) {

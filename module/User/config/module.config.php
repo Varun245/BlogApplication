@@ -19,25 +19,23 @@ return array(
                         'action'     => 'login',
                     ),
                 ),
-                'priority' => -1000
-
-                // 'may_terminate' => true,
-                // 'child_routes' => array(
-                //     'default' => array(
-                //         'type' => 'segment',
-                //         'options' => array(
-                //             'route' => '[/:action][/:id]',
-                //             'constraints' => array(
-                //                 'action' => '[a-zA-Z][a-zA-Z0-9_-]*'
-                //             ),
-                //             'defaults' => array(
-                //                 'controller' => 'Blog\Controller\Blog',
-                //                 'action' => 'index',
-                //             )
-                //         )
-                //     )
-
-                // )
+              
+                'may_terminate' => true,
+                'child_routes' => array(
+                    'process' => array(
+                        'type' => 'segment',
+                        'options' => array(
+                            'route' => '[/:action]',
+                            'constraints' => array(
+                                'action' => '[a-zA-Z][a-zA-Z0-9_-]*'
+                            ),
+                            'defaults' => array(
+                                'controller' => 'User\Controller\User',
+                                'action' => 'index',
+                            )
+                        )
+                    )
+                )
 
 
 
@@ -50,6 +48,9 @@ return array(
     'service_manager' => [
         'factories' => array(
             'Zend\Authentication\AuthenticationService' => 'User\Factories\AuthorisationServiceFactory',
+        ),
+        'invokables'=>array(
+            'User\Services\MailService' => 'User\Services\MailService',
         ),
     ],
 
@@ -75,10 +76,13 @@ return array(
 
             'authentication'=>[
                 'orm_default' => [
-                    'object_manager' => 'Doctrine\ORM\EntityMandssadager',
+                    'object_manager' => 'Doctrine\ORM\EntityManager',
                     'identity_class' => 'User\Entity\User',
                     'identity_property' => 'email',
                     'credential_property' => 'password',
+                    'credential_callable' => function (User\Entity\User $user, $passwordGiven) {
+                        return password_verify($passwordGiven,$user->getPassword());
+                    },
                 ],
             ],
 
