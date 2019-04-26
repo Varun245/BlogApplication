@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace Blog\Factories;
 
@@ -25,4 +25,3 @@ class BlogServiceFactory implements FactoryInterface
         return new BlogService($blogRepository);
     }
 }
-

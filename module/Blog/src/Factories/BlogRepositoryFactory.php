@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace Blog\Factories;
 
@@ -20,7 +20,7 @@ class BlogRepositoryFactory implements FactoryInterface
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
         $em = $serviceLocator->get('doctrine.entitymanager.orm_default');
-        
+
         return new BlogRepository($em);
     }
 }

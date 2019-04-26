@@ -1,0 +1,27 @@
+<?php
+
+$title = 'Blogs';
+$this->headTitle($title);
+?>
+<h1><?php echo $this->escapeHtml($title); ?></h1>
+<p>
+    <a href="<?php echo $this->url('blog/default', array('action' => 'add')); ?>">Create A New Blog</a>
+</p>
+
+<?php foreach ($blogs as $blog) : ?>
+
+<h5 class="card-header"><?php echo $this->escapeHtml($blog->getTitle()); ?></h5>
+<div class="card">
+        <?php echo $this->escapeHtml($blog->getDescription()); ?>
+</div>
+<br>
+<a href="<?php echo $this->url('blog/default', array('action' => 'edit', 'id' => $blog->getId())); ?>">Edit</a>
+&nbsp;
+<a href="<?php echo $this->url('blog/default', array('action' => 'delete', 'id' => $blog->getId())); ?>">Delete</a>
+
+<br>
+<br>
+
+<?php endforeach; ?>
+
+

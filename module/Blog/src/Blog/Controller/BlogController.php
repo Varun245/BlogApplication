@@ -1,5 +1,5 @@
 <?php
-declare (strict_types=1);
+declare (strict_types = 1);
 
 namespace Blog\Controller;
 
@@ -7,8 +7,12 @@ use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Blog\Form\BlogForm;
 use Blog\Entity\Blog;
-use Blog\Contracts\BlogServiceInterface;   
-
+use Blog\Contracts\BlogServiceInterface;
+use Zend\Permissions\Rbac\Rbac;
+use Zend\Permissions\Rbac\Role;
+use Blog\Authorisation\UserAssertion;
+use Zend\Diactoros\Response\EmptyResponse;
+use Zend\View\Helper\Identity;
 
 /**
  * Class BlogController
@@ -34,7 +38,7 @@ class BlogController extends AbstractActionController
      */
     public function indexAction()
     {
-        
+
         $blogs = $this->blogService->findAllBlogs();
 
         return new ViewModel([
@@ -47,9 +51,9 @@ class BlogController extends AbstractActionController
      */
     public function  addAction()
     {
-       
-        $userId=$this->identity()->getId();
-     
+
+        $userId = $this->identity()->getId();
+
         $form = new BlogForm();
 
         $form->get('submit')->setValue('Create');
@@ -65,9 +69,9 @@ class BlogController extends AbstractActionController
 
             if ($form->isValid()) {
                 $blog->exchangeArray($form->getData());
-                $this->blogService->add($blog,$userId);
+                $this->blogService->add($blog, $userId);
 
-                return $this->redirect()->toRoute('blog');
+                return $this->redirect()->toRoute('blog/default', array('action' => 'userBlogs'));
             }
         }
 
@@ -88,7 +92,18 @@ class BlogController extends AbstractActionController
             ));
         }
 
+        $identity = $this->identity();
         $blog = $this->blogService->findById($id);
+        $userAssertion = new UserAssertion($identity, $blog);
+
+        $user = new Role('user');
+        $user->addPermission('edit');
+        $rbac = new Rbac();
+        $rbac->addRole($user);
+
+        if ($rbac->isGranted($user, 'edit', $userAssertion)) { } else {
+            throw new UnauthorizedException('Not ALlowed');
+        }
 
         $form = new BlogForm();
         $form->bind($blog);
@@ -102,7 +117,7 @@ class BlogController extends AbstractActionController
             if ($form->isValid()) {
                 $this->blogService->edit();
 
-                return $this->redirect()->toRoute('blog');
+                return $this->redirect()->toRoute('blog/default', array('action' => 'userBlogs'));
             }
         }
 
@@ -129,11 +144,11 @@ class BlogController extends AbstractActionController
 
         if ($request->isPost()) {
             $del = $request->getPost('del');
-            if ($del == 'Yes') {
+            if ($del === 'Yes') {
                 $this->blogService->delete($blog);
             }
 
-            return $this->redirect()->toRoute('blog');
+            return $this->redirect()->toRoute('blog/default', array('action' => 'userBlogs'));
         }
 
         return array(
@@ -141,5 +156,18 @@ class BlogController extends AbstractActionController
             'blog' => $blog
         );
     }
-}
 
+    public function userBlogsAction()
+    {
+        $userId = (int)$this->identity()->getId();
+        $blogs = $this->blogService->userBlogs($userId);
+
+        return new ViewModel([
+            'blogs' => $blogs,
+        ]);
+    }
+
+    // public function downloadPdfAction(){
+    //   //  $pdf=new PdfModel();
+    // }
+}

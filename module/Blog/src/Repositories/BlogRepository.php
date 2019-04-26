@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace Blog\Repositories;
 
@@ -38,17 +38,16 @@ class BlogRepository
      * @param Blog $blog
      * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function add(Blog $blog,$userId)
+    public function add(Blog $blog, $userId)
     {
 
-        $user=$this->findById($userId);
+        $user = $this->em->find(User::class, $userId);
 
         $blog->setUser($user);
 
         $this->em->persist($blog);
 
         $this->em->flush();
-        
     }
 
     /**
@@ -82,6 +81,12 @@ class BlogRepository
         $this->em->remove($blog);
         $this->em->flush();
     }
-}
-    
 
+    public function userBlogs($userId)
+    {
+        $user = $this->em->find(User::class, $userId);
+        $blogs = $user->getBlogs();
+
+        return $blogs;
+    }
+}

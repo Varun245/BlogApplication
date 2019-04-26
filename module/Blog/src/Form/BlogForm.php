@@ -1,5 +1,5 @@
 <?php
-declare(Strict_types=1);
+declare (Strict_types = 1);
 
 namespace Blog\Form;
 
@@ -20,22 +20,22 @@ class BlogForm extends Form
         parent::__construct('blog');
 
         $this->add([
-            'name'=>'id',
-            'type'=>'Hidden',
+            'name' => 'id',
+            'type' => 'Hidden',
         ]);
 
         $this->add([
-            'name'=>'title',
-            'type'=>'Text',
+            'name' => 'title',
+            'type' => 'Text',
         ]);
 
-         $this->add([
-             'name'=>'description',
-             'type'=>'Zend\Form\Element\Textarea',
-             'attributes'=>[
-                 'rows'=> 10,
-                 'cols'=>100
-             ]
+        $this->add([
+            'name' => 'description',
+            'type' => 'Zend\Form\Element\Textarea',
+            'attributes' => [
+                'rows' => 10,
+                'cols' => 100
+            ]
         ]);
 
         $this->add([
@@ -48,4 +48,3 @@ class BlogForm extends Form
         ]);
     }
 }
-

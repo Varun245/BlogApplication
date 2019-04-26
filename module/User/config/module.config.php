@@ -19,7 +19,7 @@ return array(
                         'action'     => 'login',
                     ),
                 ),
-              
+
                 'may_terminate' => true,
                 'child_routes' => array(
                     'process' => array(
@@ -41,15 +41,16 @@ return array(
 
 
             ),
-   
+
         ),
     ),
 
     'service_manager' => [
         'factories' => array(
             'Zend\Authentication\AuthenticationService' => 'User\Factories\AuthorisationServiceFactory',
+            'Log' => 'User\Factories\LogFactory'
         ),
-        'invokables'=>array(
+        'invokables' => array(
             'User\Services\MailService' => 'User\Services\MailService',
         ),
     ],
@@ -72,20 +73,18 @@ return array(
                     'User\Entity' => __NAMESPACE__ . '_driver'
                 )
             )
-         ),
+        ),
 
-            'authentication'=>[
-                'orm_default' => [
-                    'object_manager' => 'Doctrine\ORM\EntityManager',
-                    'identity_class' => 'User\Entity\User',
-                    'identity_property' => 'email',
-                    'credential_property' => 'password',
-                    'credential_callable' => function (User\Entity\User $user, $passwordGiven) {
-                        return password_verify($passwordGiven,$user->getPassword());
-                    },
-                ],
+        'authentication' => [
+            'orm_default' => [
+                'object_manager' => 'Doctrine\ORM\EntityManager',
+                'identity_class' => 'User\Entity\User',
+                'identity_property' => 'email',
+                'credential_property' => 'password',
+                'credential_callable' => function (User\Entity\User $user, $passwordGiven) {
+                    return password_verify($passwordGiven, $user->getPassword());
+                },
             ],
-
-    
+        ],
     )
 );

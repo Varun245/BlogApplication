@@ -2,12 +2,10 @@
 
 namespace User\Factories;
 
-
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use User\Controller\UserController;
 use Zend\Authentication\AuthenticationService;
-use DoctrineORMModule\Options\EntityManager;
 use Doctrine\ORM\EntityManager as DoctrineEntityManager;
 use User\Services\MailService;
 

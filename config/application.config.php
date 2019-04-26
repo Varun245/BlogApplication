@@ -13,6 +13,7 @@ return array(
         'Blog',
         'DoctrineModule',
         'DoctrineORMModule',
+        'DOMPDFModule',
         'ZendDeveloperTools'
     ),
 

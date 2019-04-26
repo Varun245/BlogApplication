@@ -1,5 +1,5 @@
 <?php
-declare(Strict_types=1);
+declare (Strict_types = 1);
 
 namespace Blog\Entity;
 
@@ -41,7 +41,7 @@ class Blog implements InputFilterAwareInterface
     /**
      * @return mixed
      */
-    public function getId():int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -57,7 +57,7 @@ class Blog implements InputFilterAwareInterface
     /**
      * @return String
      */
-    public function getTitle():string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -65,7 +65,7 @@ class Blog implements InputFilterAwareInterface
     /**
      * @return String
      */
-    public function getDescription():string
+    public function getDescription(): string
     {
         return $this->description;
     }
@@ -82,7 +82,7 @@ class Blog implements InputFilterAwareInterface
     /**
      * @return array
      */
-    public function getArrayCopy() 
+    public function getArrayCopy()
     {
         return get_object_vars($this);
     }
@@ -96,9 +96,14 @@ class Blog implements InputFilterAwareInterface
         throw new Exception('Not Used');
     }
 
-    public function setUser($id)
+    public function setUser($user)
     {
-       $this->user=$id;
+        $this->user = $user;
+    }
+
+    public function getUser()
+    {
+        return $this->user;
     }
 
     public function getInputFilter()
@@ -128,7 +133,7 @@ class Blog implements InputFilterAwareInterface
                         'name' => 'StringLength',
                         'options' => array(
                             'encoding' => 'UTF-8',
-                            'min' => 1 ,
+                            'min' => 1,
                             'max' => 100,
                         ),
                     ),
@@ -165,8 +170,8 @@ class Blog implements InputFilterAwareInterface
      */
     public function exchangeArray($data)
     {
-        $this->id = $data['id'] ;
-        $this->title = $data['title']; 
-        $this->description  = $data['description'] ;
+        $this->id = $data['id'];
+        $this->title = $data['title'];
+        $this->description  = $data['description'];
     }
 }

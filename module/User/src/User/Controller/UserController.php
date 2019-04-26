@@ -9,7 +9,7 @@ use User\Form\RegisterForm;
 use User\Entity\User;
 use Doctrine\ORM\EntityManager;
 use User\Services\MailService;
-use Zend\Mvc\Controller\Plugin\Redirect;
+use Zend\Log\LoggerServiceFactory;
 
 class UserController extends AbstractActionController
 {
@@ -18,11 +18,11 @@ class UserController extends AbstractActionController
     protected $em;
     protected $mailService;
 
-    public function __construct(AuthenticationService $authService, EntityManager $em,MailService $mailService)
+    public function __construct(AuthenticationService $authService, EntityManager $em, MailService $mailService)
     {
         $this->authService = $authService;
         $this->em = $em;
-        $this->mailService=$mailService;
+        $this->mailService = $mailService;
     }
 
     public function loginAction()
@@ -41,8 +41,10 @@ class UserController extends AbstractActionController
             $adapter->setCredential($data['password']);
             $authResult = $this->authService->authenticate();
             if ($authResult->isValid()) {
+                $this->log()->info("User ".$data['email']." Logged in at ".date("Y-m-d H:i:s")); 
                 return $this->redirect()->toRoute('blog');
             } else {
+                
                 $this->flashMessenger()->addMessage('Incorrect Credentials!!!!!');
                 return $this->redirect()->toRoute('user');
             }
@@ -78,15 +80,18 @@ class UserController extends AbstractActionController
             $form->setData($data);
             if ($form->isValid()) {
                 $email = $this->em->getRepository(User::class)->findOneByemail($data['email']);
-                if(!$email){
-                $user->exchangeArray($form->getData());
-                $password = $data['password'];
-                $hash = password_hash($password, PASSWORD_BCRYPT);
-                $user->setPassword($hash);
-                $this->em->persist($user);
-                $this->em->flush();
+                if (!$email) {
+                    $user->exchangeArray($form->getData());
+                    $password = $data['password'];
+                    $hash = password_hash($password, PASSWORD_BCRYPT);
+                    $user->setPassword($hash);
+                    $user->setRole(1);
+                    $this->em->persist($user);
+                    $this->em->flush();
+                    $this->mailService->sendMail($user);
 
-                return $this->redirect()->toRoute('user');}
+                    return $this->redirect()->toRoute('user');
+                }
                 $this->flashMessenger()->addMessage('Account already Exists with this email id');
                 return [
                     'form' => $form
@@ -98,4 +103,11 @@ class UserController extends AbstractActionController
             'form' => $form
         ];
     }
+
+    public function log()
+    {
+        $sm = $this->getServiceLocator();
+        return $sm->get('Log');
+    }
+
 }

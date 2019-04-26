@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace Blog\Factories;
 
@@ -22,8 +22,7 @@ class ControllerFactory implements FactoryInterface
     {
         $serviceLocator = $serviceLocator->getServiceLocator();
         $blogService = $serviceLocator->get(BlogService::class);
-        
+
         return new BlogController($blogService);
     }
 }
-

@@ -6,10 +6,10 @@ echo $this->form()->openTag($form);
 $form->prepare();
 if ($this->flashMessenger()->hasMessages()) {
     $messages = $this->flashMessenger()->getMessages();
-        foreach($messages as $message) {
-            echo $message;
-        }   
+    foreach ($messages as $message) {
+        echo $message;
     }
+}
 ?>
 <h5>Email : </h5><?php echo $this->formRow($form->get('email')); ?>
 

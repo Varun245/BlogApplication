@@ -8,12 +8,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping\OneToMany;
 use Zend\InputFilter\InputFilter;
 use Zend\InputFilter\InputFilterAwareInterface;
-use Zend\InputFilter\InputFilterInterface;  
+use Zend\InputFilter\InputFilterInterface;
 
 /** @ORM\Entity */
-class User implements InputFilterAwareInterface {
+class User implements InputFilterAwareInterface
+{
 
-     /**
+    /**
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer")
@@ -30,8 +31,11 @@ class User implements InputFilterAwareInterface {
     /** @ORM\Column(type="string") */
     private $email;
 
-     /** @ORM\Column(type="string") */
+    /** @ORM\Column(type="string") */
     private $password;
+
+    /** @ORM\Column(type="boolean") */
+    private $role;
 
     protected $inputFilter;
 
@@ -42,7 +46,7 @@ class User implements InputFilterAwareInterface {
 
     public function __construct()
     {
-        $this->blogs=new ArrayCollection();
+        $this->blogs = new ArrayCollection();
     }
 
     /**
@@ -85,7 +89,7 @@ class User implements InputFilterAwareInterface {
         $this->password = $password;
     }
 
-    public function getBlogs(): ArrayCollection
+    public function getBlogs()
     {
         return $this->blogs;
     }
@@ -97,7 +101,7 @@ class User implements InputFilterAwareInterface {
 
     public function setFirstName(string $firstName)
     {
-        $this->firstName=$firstName;
+        $this->firstName = $firstName;
     }
 
     public function getLastName()
@@ -107,27 +111,34 @@ class User implements InputFilterAwareInterface {
 
     public function setLastName(string $lastName)
     {
-        $this->lastName=$lastName;
+        $this->lastName = $lastName;
     }
+
+    public function setRole($role)
+    {
+        $this->role = $role;
+    }
+
+
 
     /**
      * @return array
      */
-    public function getArrayCopy() 
+    public function getArrayCopy()
     {
         return get_object_vars($this);
     }
 
     public function exchangeArray($data)
     {
-        $this->id=$data['id'];
-        $this->firstName=$data['firstName'];
-        $this->lastName=$data['lastName'];
-        $this->email=$data['email'];
-        $this->password=$data['password'];
+        $this->id = $data['id'];
+        $this->firstName = $data['firstName'];
+        $this->lastName = $data['lastName'];
+        $this->email = $data['email'];
+        $this->password = $data['password'];
     }
 
-      /**
+    /**
      * @param InputFilterInterface $inputFilter
      * @return void|InputFilterAwareInterface
      */
@@ -164,7 +175,7 @@ class User implements InputFilterAwareInterface {
                         'name' => 'StringLength',
                         'options' => array(
                             'encoding' => 'UTF-8',
-                            'min' => 1 ,
+                            'min' => 1,
                             'max' => 100,
                         ),
                     ),
@@ -208,9 +219,9 @@ class User implements InputFilterAwareInterface {
                         ),
                     ),
                     array(
-                        'name'=>'EmailAddress',
-                        'options'=>array(
-                            'message'=>'Not a Valid Email Address'
+                        'name' => 'EmailAddress',
+                        'options' => array(
+                            'message' => 'Not a Valid Email Address'
                         ),
                     ),
                 ),
@@ -230,7 +241,7 @@ class User implements InputFilterAwareInterface {
                             'encoding' => 'UTF-8',
                             'min' => 8,
                             'max' => 20,
-                            'message'=>'Password should be of 8 characters'
+                            'message' => 'Password should be of 8 characters'
                         ),
                     ),
                 ),
@@ -245,18 +256,14 @@ class User implements InputFilterAwareInterface {
                 ),
                 'validators' => array(
                     array(
-                        'name'=>'Identical',
+                        'name' => 'Identical',
                         'options' => array(
-                            'token' => 'password', 
-                            'message'=>'Password are not Matching'
+                            'token' => 'password',
+                            'message' => 'Password are not Matching'
                         ),
                     ),
                 ),
             ));
-
-            
-
-            
 
             $this->inputFilter = $inputFilter;
         }

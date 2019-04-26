@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace Blog\Contracts;
 
@@ -24,7 +24,7 @@ interface BlogServiceInterface
      * @param Blog $blog
      * @return mixed
      */
-    public function add(Blog $blog,int $userId);
+    public function add(Blog $blog, int $userId);
 
     /**
      * Edit the Blog 
@@ -48,5 +48,6 @@ interface BlogServiceInterface
      * @return Blog
      */
     public function findById(int $id): Blog;
-}
 
+    public function userBlogs(int $id);
+}

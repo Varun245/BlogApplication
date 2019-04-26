@@ -64,10 +64,10 @@ class User extends \User\Entity\User implements \Doctrine\ORM\Proxy\Proxy
     public function __sleep()
     {
         if ($this->__isInitialized__) {
-            return ['__isInitialized__', '' . "\0" . 'User\\Entity\\User' . "\0" . 'id', '' . "\0" . 'User\\Entity\\User' . "\0" . 'firstName', '' . "\0" . 'User\\Entity\\User' . "\0" . 'lastName', '' . "\0" . 'User\\Entity\\User' . "\0" . 'email', '' . "\0" . 'User\\Entity\\User' . "\0" . 'password', 'inputFilter', '' . "\0" . 'User\\Entity\\User' . "\0" . 'blogs'];
+            return ['__isInitialized__', '' . "\0" . 'User\\Entity\\User' . "\0" . 'id', '' . "\0" . 'User\\Entity\\User' . "\0" . 'firstName', '' . "\0" . 'User\\Entity\\User' . "\0" . 'lastName', '' . "\0" . 'User\\Entity\\User' . "\0" . 'email', '' . "\0" . 'User\\Entity\\User' . "\0" . 'password', '' . "\0" . 'User\\Entity\\User' . "\0" . 'role', 'inputFilter', '' . "\0" . 'User\\Entity\\User' . "\0" . 'blogs'];
         }
 
-        return ['__isInitialized__', '' . "\0" . 'User\\Entity\\User' . "\0" . 'id', '' . "\0" . 'User\\Entity\\User' . "\0" . 'firstName', '' . "\0" . 'User\\Entity\\User' . "\0" . 'lastName', '' . "\0" . 'User\\Entity\\User' . "\0" . 'email', '' . "\0" . 'User\\Entity\\User' . "\0" . 'password', 'inputFilter', '' . "\0" . 'User\\Entity\\User' . "\0" . 'blogs'];
+        return ['__isInitialized__', '' . "\0" . 'User\\Entity\\User' . "\0" . 'id', '' . "\0" . 'User\\Entity\\User' . "\0" . 'firstName', '' . "\0" . 'User\\Entity\\User' . "\0" . 'lastName', '' . "\0" . 'User\\Entity\\User' . "\0" . 'email', '' . "\0" . 'User\\Entity\\User' . "\0" . 'password', '' . "\0" . 'User\\Entity\\User' . "\0" . 'role', 'inputFilter', '' . "\0" . 'User\\Entity\\User' . "\0" . 'blogs'];
     }
 
     /**
@@ -235,7 +235,7 @@ class User extends \User\Entity\User implements \Doctrine\ORM\Proxy\Proxy
     /**
      * {@inheritDoc}
      */
-    public function getBlogs(): \Doctrine\Common\Collections\ArrayCollection
+    public function getBlogs()
     {
 
         $this->__initializer__ && $this->__initializer__->__invoke($this, 'getBlogs', []);
@@ -285,6 +285,17 @@ class User extends \User\Entity\User implements \Doctrine\ORM\Proxy\Proxy
         $this->__initializer__ && $this->__initializer__->__invoke($this, 'setLastName', [$lastName]);
 
         return parent::setLastName($lastName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setRole($role)
+    {
+
+        $this->__initializer__ && $this->__initializer__->__invoke($this, 'setRole', [$role]);
+
+        return parent::setRole($role);
     }
 
     /**
