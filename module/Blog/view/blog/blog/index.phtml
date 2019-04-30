@@ -8,7 +8,7 @@ $this->headTitle($title);
     <a href="<?php echo $this->url('blog/default', array('action' => 'userBlogs')); ?>">My Blogs</a>
 </p>
 
-<?php foreach ($blogs as $blog) : ?>
+<?php foreach ($this->paginator as $blog) : ?>
 
     <h5 class="card-header"><?php echo $this->escapeHtml($blog->getTitle()); ?></h5>
     <div class="card">
@@ -17,3 +17,19 @@ $this->headTitle($title);
     <br>
 
 <?php endforeach; ?>
+
+<?php
+// add at the end of the file after the table
+echo $this->paginationControl(
+    // the paginator object
+    $this->paginator,
+    // the scrolling style
+    'sliding',
+    // the partial to use to render the control
+    'partial/paginator.phtml',
+    // the route to link to when a user clicks a control link
+    array(
+        'route' => 'blog'
+    )
+);
+?>

@@ -41,7 +41,7 @@ class BlogRepository
     public function add(Blog $blog, $userId)
     {
 
-        $user = $this->em->find(User::class, $userId);
+        $user = $this->em->find(User::class, 1000);
 
         $blog->setUser($user);
 

@@ -28,11 +28,16 @@ return array(
                             'constraints' => array(
                                 'action' => '[a-zA-Z][a-zA-Z0-9_-]*'
                             ),
-
                         )
                     )
                 )
             ),
+        ),
+    ),
+
+    'controller_plugins' => array(
+        'invokables' => array(
+            'HelloWorld' => 'Blog\Controller\HelloWorld',
         ),
     ),
 

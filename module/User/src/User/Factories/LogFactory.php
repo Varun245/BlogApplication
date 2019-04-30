@@ -17,3 +17,4 @@ class LogFactory implements FactoryInterface{
     }
 
 }
+

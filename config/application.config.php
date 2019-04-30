@@ -13,8 +13,8 @@ return array(
         'Blog',
         'DoctrineModule',
         'DoctrineORMModule',
-        'DOMPDFModule',
-        'ZendDeveloperTools'
+        'ZendDeveloperTools',
+        'LosPdf'
     ),
 
     // These are various options for the listeners attached to the ModuleManager

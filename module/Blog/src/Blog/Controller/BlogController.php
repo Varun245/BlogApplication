@@ -7,12 +7,14 @@ use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Blog\Form\BlogForm;
 use Blog\Entity\Blog;
-use Blog\Contracts\BlogServiceInterface;
+use Blog\Interfaces\BlogServiceInterface;
 use Zend\Permissions\Rbac\Rbac;
 use Zend\Permissions\Rbac\Role;
 use Blog\Authorisation\UserAssertion;
-use Zend\Diactoros\Response\EmptyResponse;
-use Zend\View\Helper\Identity;
+use Doctrine\ORM\EntityManager;
+use DoctrineModule\Paginator\Adapter\Selectable as SelectableAdapter;
+use Zend\Paginator\Paginator;
+use DOMPDFModule\View\Model\PdfModel;
 
 /**
  * Class BlogController
@@ -20,17 +22,23 @@ use Zend\View\Helper\Identity;
  */
 class BlogController extends AbstractActionController
 {
+    /**
+     * @var BlogServiceInterface
+     */
     protected $blogService;
+    protected $em;
 
     protected $authenticationService;
 
     /**
      * BlogController constructor.
      * @param BlogServiceInterface $blogService
+     * @param EntityManager $em
      */
-    public function __construct(BlogServiceInterface $blogService)
+    public function __construct(BlogServiceInterface $blogService,EntityManager $em)
     {
         $this->blogService = $blogService;
+        $this->em = $em;
     }
 
     /**
@@ -38,12 +46,22 @@ class BlogController extends AbstractActionController
      */
     public function indexAction()
     {
-
         $blogs = $this->blogService->findAllBlogs();
 
+        $adapter = new SelectableAdapter($this->em->getRepository(Blog::class));
+        $itemsPerPage = 5;
+        $paginator = new Paginator($adapter);
+        $paginator->setCurrentPageNumber(1)
+                ->setItemCountPerPage($itemsPerPage);
+            
+      
         return new ViewModel([
             'blogs' => $blogs,
+            'paginator' => $paginator,
+           
         ]);
+
+     
     }
 
     /**
@@ -85,6 +103,7 @@ class BlogController extends AbstractActionController
      */
     public function editAction()
     {
+       
         $id = (int)$this->params()->fromRoute('id', 0);
         if (!$id) {
             return $this->redirect()->toRoute('blog', array(
@@ -127,8 +146,10 @@ class BlogController extends AbstractActionController
         ];
     }
 
+
     /**
      * @return array|\Zend\Http\Response
+     * @throws \Exception
      */
     public function deleteAction()
     {
@@ -137,6 +158,10 @@ class BlogController extends AbstractActionController
         if (!$id) {
 
             return $this->redirect()->toRoute('blog');
+        }
+        else{
+
+            throw new \Exception('Id Not found');
         }
 
         $blog = $this->blogService->findById($id);
@@ -166,8 +191,6 @@ class BlogController extends AbstractActionController
             'blogs' => $blogs,
         ]);
     }
-
-    // public function downloadPdfAction(){
-    //   //  $pdf=new PdfModel();
-    // }
 }
+
+

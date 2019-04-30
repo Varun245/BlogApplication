@@ -4,14 +4,15 @@ declare (strict_types = 1);
 namespace Blog\Services;
 
 use Blog\Repositories\BlogRepository;
-use Blog\Contracts\BlogServiceInterface;
+use Blog\Interfaces\BlogServiceInterface;
 use Blog\Entity\Blog;
+use Zend\Mvc\Controller\AbstractActionController;
 
 /**
  * Class BlogService
  * @package Blog\Services
  */
-class BlogService implements BlogServiceInterface
+class BlogService extends AbstractActionController implements BlogServiceInterface 
 {
    protected $blogRepository;
 

@@ -7,6 +7,7 @@ use Blog\Controller\BlogController;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Blog\Services\BlogService;
+use Doctrine\ORM\EntityManager;
 
 /**
  * Class ControllerFactory
@@ -22,7 +23,8 @@ class ControllerFactory implements FactoryInterface
     {
         $serviceLocator = $serviceLocator->getServiceLocator();
         $blogService = $serviceLocator->get(BlogService::class);
+        $em=$serviceLocator->get(EntityManager::class);
 
-        return new BlogController($blogService);
+        return new BlogController($blogService,$em);
     }
 }
